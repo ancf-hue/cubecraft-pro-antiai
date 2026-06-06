@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<title>CubeCraft Pro — Исправленная версия</title>
+<style>
+    * { user-select: none; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    body { 
+        margin: 0; min-height: 100vh; 
+        background: radial-gradient(ellipse at top, #0a1a3a 0%, #050a1f 50%, #000005 100%),
+                    linear-gradient(135deg, #0a1f4a, #050a1f);
+        background-attachment: fixed;
+        display: flex; flex-direction: column; align-items: center; 
+        font-family: 'Segoe UI', 'Courier New', monospace; 
+        padding: 10px; color: #e0e8ff;
+    }
+    body::before {
+        content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background-image: 
+            radial-gradient(2px 2px at 20% 30%, white, transparent),
+            radial-gradient(1px 1px at 60% 70%, white, transparent),
+            radial-gradient(1px 1px at 50% 50%, #aaccff, transparent),
+            radial-gradient(2px 2px at 80% 10%, white, transparent),
+            radial-gradient(1px 1px at 90% 60%, white, transparent),
+            radial-gradient(1px 1px at 33% 80%, #aaccff, transparent);
+        background-size: 200% 200%; opacity: 0.4;
+        pointer-events: none; z-index: 0;
+        animation: twinkle 8s linear infinite;
+    }
+    @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+    
+    .logo-container { position: relative; z-index: 10; margin: 20px 0; text-align: center; }
+    .logo {
+        display: inline-flex; align-items: center; gap: 15px;
+        padding: 15px 35px;
+        background: linear-gradient(135deg, rgba(255, 170, 51, 0.15), rgba(51, 102, 255, 0.15));
+        backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        border: 2px solid transparent; border-radius: 60px;
+        background-clip: padding-box; position: relative;
+        box-shadow: 0 8px 32px rgba(255, 170, 51, 0.3), 0 0 40px rgba(51, 102, 255, 0.2),
+                    inset 0 1px 1px rgba(255,255,255,0.3);
+    }
+    .logo::before {
+        content: ''; position: absolute; inset: -2px;
+        background: linear-gradient(135deg, #ffaa33, #3366ff, #ffaa33);
+        border-radius: 60px; z-index: -1;
+        animation: gradientShift 4s ease infinite; background-size: 200% 200%;
+    }
+    @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    .logo-icon { display: inline-block; vertical-align: middle; }
+    .logo-icon img {
+        width: 48px; height: 48px;
+        filter: drop-shadow(0 0 10px rgba(255, 170, 51, 0.8));
+        animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-5px) rotate(5deg); } }
+    .logo-text {
+        display: inline-block; vertical-align: middle;
+        font-size: 28px; font-weight: 900;
+        background: linear-gradient(135deg, #ffdd99, #ffffff, #ffaa33);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 30px rgba(255, 170, 51, 0.5); letter-spacing: 2px;
+    }
+    
+    .game-container { 
+        background: rgba(20, 30, 60, 0.4);
+        backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+        padding: 15px; border-radius: 24px; 
+        box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1),
+                    0 0 0 1px rgba(255,255,255,0.05);
+        border: 1px solid rgba(255, 170, 51, 0.3);
+        position: relative; z-index: 5;
+    }
+    canvas { 
+        display: block; margin: 0 auto; border-radius: 16px; cursor: crosshair; 
+        box-shadow: 0 0 0 3px rgba(90, 58, 26, 0.8), 0 10px 30px rgba(0,0,0,0.5);
+        max-width: 100%; height: auto; 
+    }
+    .info-panel { 
+        margin-top: 12px; display: flex; justify-content: space-between; 
+        background: rgba(10, 15, 30, 0.6); backdrop-filter: blur(10px);
+        padding: 8px 12px; border-radius: 40px; color: #ffdd99; 
+        text-shadow: 1px 1px 0 #3a2a0a; font-weight: bold; 
+        gap: 6px; flex-wrap: wrap; font-size: 9px; 
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .stat { 
+        background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 32px; 
+        border: 1px solid rgba(255, 170, 51, 0.2);
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+    }
+    button { 
+        position: relative;
+        background: linear-gradient(145deg, #ffaa33, #dd8811);
+        border: none; font-family: 'Segoe UI', monospace; font-weight: bold; 
+        padding: 6px 14px; border-radius: 14px; cursor: pointer; 
+        font-size: 10px; color: #2a1a0a;
+        text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+        box-shadow: 0 4px 0 #8b5a00, 0 6px 10px rgba(0,0,0,0.4),
+                    inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.2);
+        transition: all 0.1s ease; transform: translateY(0);
+    }
+    button:hover:not(:disabled) {
+        background: linear-gradient(145deg, #ffbb55, #ee9922);
+        transform: translateY(-1px);
+        box-shadow: 0 5px 0 #8b5a00, 0 8px 15px rgba(0,0,0,0.5),
+                    inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.2);
+    }
+    button:active:not(:disabled) { 
+        transform: translateY(3px); 
+        box-shadow: 0 1px 0 #8b5a00, 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 3px rgba(0,0,0,0.3);
+    }
+    button:disabled { 
+        background: linear-gradient(145deg, #4a4a5a, #2a2a3a);
+        color: #666;
+        box-shadow: 0 2px 0 #1a1a2a, 0 3px 5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+        cursor: not-allowed; text-shadow: none;
+    }
+    .controls { display: flex; gap: 4px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+    .badge { 
+        font-size: 8px; background: rgba(10, 20, 40, 0.7); color: #aaccff; 
+        border-radius: 20px; padding: 3px 8px; 
+        border: 1px solid rgba(100, 150, 255, 0.3); backdrop-filter: blur(5px);
+    }
+    .craft-panel { 
+        margin-top: 8px; display: flex; gap: 4px; justify-content: center; 
+        flex-wrap: wrap; max-height: 95px; overflow-y: auto; padding: 6px;
+        background: rgba(0,0,0,0.3); border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .craft-btn { font-size: 8px; padding: 4px 8px; border-radius: 10px; }
+    
+    .overlay { 
+        position: fixed; inset: 0; background: rgba(5, 10, 25, 0.95);
+        backdrop-filter: blur(10px);
+        display: none; justify-content: center; align-items: center; 
+        flex-direction: column; color: #ffdd99; z-index: 100; 
+        font-family: monospace; text-align: center; padding: 20px; 
+    }
+    .overlay h1 { font-size: 48px; margin: 0; color: #ff5555; text-shadow: 3px 3px 0 #000, 0 0 30px rgba(255,85,85,0.5); }
+    .overlay h1.menu-title { color: #ffaa33; font-size: 56px; text-shadow: 3px 3px 0 #000, 0 0 40px rgba(255,170,51,0.6); }
+    .overlay p { font-size: 18px; margin: 10px 0 20px; }
+    .overlay.show { display: flex; flex-direction: column; }
+    .overlay button { font-size: 18px; padding: 12px 40px; margin: 8px; min-width: 260px; }
+    
+    .minimap { 
+        position: absolute; bottom: 15px; right: 15px; 
+        width: 100px; height: 100px; background: rgba(0,0,0,0.7); 
+        border-radius: 12px; border: 2px solid rgba(255, 170, 51, 0.6); 
+        pointer-events: none; z-index: 10; 
+        box-shadow: 0 0 20px rgba(255, 170, 51, 0.3);
+    }
+    .xp-bar { 
+        width: 100%; height: 6px; background: rgba(0,0,0,0.5); 
+        border-radius: 3px; margin-top: 6px; overflow: hidden; 
+        border: 1px solid rgba(85, 255, 85, 0.3);
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .xp-fill { 
+        width: 0%; height: 100%; 
+        background: linear-gradient(90deg, #55ff55, #aaff55, #ffff55); 
+        transition: width 0.2s; box-shadow: 0 0 10px rgba(85, 255, 85, 0.6);
+    }
+    .sound-toggle { 
+        position: absolute; top: 15px; right: 15px; z-index: 11; 
+        background: rgba(10, 20, 40, 0.7); backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 170, 51, 0.6); border-radius: 50%; 
+        width: 40px; height: 40px; font-size: 18px; cursor: pointer; 
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 15px rgba(255, 170, 51, 0.3);
+        transition: all 0.2s; padding: 0;
+    }
+    .sound-toggle:hover { transform: scale(1.1) translateY(0); box-shadow: 0 0 25px rgba(255, 170, 51, 0.6); }
+    .notification { 
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%); 
+        background: linear-gradient(135deg, #ffaa33, #ff7711);
+        color: #2a1a0a; padding: 10px 24px; border-radius: 30px; 
+        font-weight: bold; font-family: monospace; z-index: 200; 
+        opacity: 0; transition: opacity 0.3s, top 0.3s; 
+        box-shadow: 0 8px 25px rgba(255, 170, 51, 0.5), 0 0 0 1px rgba(255,255,255,0.2);
+        white-space: nowrap; font-size: 13px;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    .notification.show { opacity: 1; top: 40px; }
+    .achievements-panel { 
+        margin-top: 6px; background: rgba(10, 20, 40, 0.7);
+        backdrop-filter: blur(8px); border-radius: 20px; padding: 5px 12px; 
+        font-size: 10px; text-align: center; color: #ffdd99;
+        border: 1px solid rgba(255, 170, 51, 0.2);
+    }
+    .boss-hp-bar { 
+        position: absolute; top: 80px; left: 50%; transform: translateX(-50%); 
+        width: 320px; background: rgba(50, 0, 0, 0.8); backdrop-filter: blur(10px);
+        border-radius: 20px; border: 2px solid #ff5555; 
+        overflow: hidden; z-index: 15; display: none;
+        box-shadow: 0 0 30px rgba(255, 85, 85, 0.5);
+    }
+    .boss-hp-fill { 
+        height: 22px; width: 100%; 
+        background: linear-gradient(90deg, #ff0000, #ff6666, #ff0000); 
+        background-size: 200% 100%;
+        animation: hpShine 2s linear infinite; transition: width 0.2s; 
+    }
+    @keyframes hpShine { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+    .boss-hp-text { 
+        position: absolute; top: 3px; left: 50%; transform: translateX(-50%); 
+        color: white; font-size: 12px; font-weight: bold; 
+        text-shadow: 2px 2px 0 #000, 0 0 10px #ff0000; 
+    }
+    .boat-indicator { 
+        position: absolute; bottom: 100px; right: 15px; 
+        background: rgba(10, 20, 40, 0.8); backdrop-filter: blur(8px);
+        padding: 5px 10px; border-radius: 20px; 
+        font-size: 10px; color: #ffaa33; display: none;
+        border: 1px solid rgba(255, 170, 51, 0.4);
+    }
+    .armor-indicator { 
+        position: absolute; bottom: 15px; left: 15px; 
+        background: rgba(10, 20, 40, 0.8); backdrop-filter: blur(8px);
+        padding: 5px 10px; border-radius: 20px; 
+        font-size: 10px; color: #ffaa33; display: flex; gap: 5px;
+        border: 1px solid rgba(255, 170, 51, 0.4); z-index: 10;
+    }
+    .stats-indicator {
+        position: absolute; top: 15px; left: 15px;
+        background: rgba(10, 20, 40, 0.8); backdrop-filter: blur(8px);
+        padding: 5px 10px; border-radius: 20px;
+        font-size: 10px; color: #aaccff;
+        border: 1px solid rgba(100, 150, 255, 0.4); z-index: 10;
+        display: flex; gap: 10px;
+    }
+    
+    /* ===== МОБИЛЬНЫЕ КНОПКИ УПРАВЛЕНИЯ ===== */
+    .mobile-controls {
+        display: none;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 10px;
+        padding: 10px;
+        background: rgba(10, 20, 40, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 170, 51, 0.3);
+    }
+    .mobile-btn {
+        width: 56px;
+        height: 56px;
+        font-size: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        background: linear-gradient(145deg, #ffaa33, #dd8811);
+        box-shadow: 0 4px 0 #8b5a00, 0 6px 10px rgba(0,0,0,0.4);
+    }
+    .mobile-btn:active {
+        transform: translateY(3px);
+        box-shadow: 0 1px 0 #8b5a00, 0 2px 4px rgba(0,0,0,0.4);
+    }
+    .mobile-btn.danger {
+        background: linear-gradient(145deg, #ff5555, #cc2222);
+        box-shadow: 0 4px 0 #880000, 0 6px 10px rgba(0,0,0,0.4);
+    }
+    .mobile-btn.info {
+        background: linear-gradient(145deg, #4a8fff, #2266cc);
+        box-shadow: 0 4px 0 #1a4499, 0 6px 10px rgba(0,0,0,0.4);
+    }
+    .dpad {
+        display: grid;
+        grid-template-columns: repeat(3, 50px);
+        grid-template-rows: repeat(3, 50px);
+        gap: 4px;
+    }
+    .dpad-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+    .dpad-btn.empty { visibility: hidden; }
+    @media (max-width: 768px), (pointer: coarse) {
+        .mobile-controls { display: flex; }
+        .controls { display: none; }
+    }
+    
+    .support-container { position: relative; z-index: 10; margin: 25px auto 20px; max-width: 780px; width: 100%; }
+    .support-block {
+        background: linear-gradient(135deg, rgba(30, 60, 120, 0.4), rgba(10, 25, 60, 0.6));
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px; padding: 20px 25px; position: relative;
+        box-shadow: 0 15px 40px rgba(0, 0, 30, 0.5), inset 0 1px 2px rgba(255,255,255,0.1),
+                    0 0 0 1px rgba(255,255,255,0.05);
+        border: 1px solid rgba(100, 150, 255, 0.3); overflow: hidden;
+    }
+    .support-block::before {
+        content: ''; position: absolute; inset: 0;
+        background: linear-gradient(135deg, transparent 0%, rgba(100, 150, 255, 0.08) 40%, 
+                    transparent 60%, rgba(255, 170, 51, 0.05) 100%);
+        pointer-events: none;
+    }
+    .support-block::after {
+        content: ''; position: absolute; top: -50%; right: -20%;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(255, 170, 51, 0.1), transparent 70%);
+        pointer-events: none;
+    }
+    .support-title {
+        font-size: 22px; font-weight: 900; text-align: center; margin-bottom: 10px;
+        background: linear-gradient(135deg, #ffdd99, #ffaa33, #ff7711);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 20px rgba(255, 170, 51, 0.3);
+        letter-spacing: 1px; position: relative; z-index: 2;
+    }
+    .support-subtitle {
+        font-size: 13px; color: #aaccff; text-align: center;
+        margin-bottom: 15px; line-height: 1.5; position: relative; z-index: 2;
+    }
+    .support-subtitle strong { color: #ffdd99; font-weight: 700; }
+    .phone-row {
+        display: flex; align-items: center; justify-content: center;
+        gap: 10px; margin: 12px 0; flex-wrap: wrap; position: relative; z-index: 2;
+    }
+    .phone-label { font-size: 13px; color: #88aaff; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+    .phone-number {
+        font-size: 18px; font-weight: 900; color: #ffffff;
+        background: rgba(0, 0, 0, 0.4); padding: 8px 18px; border-radius: 30px;
+        border: 1px solid rgba(255, 170, 51, 0.4); letter-spacing: 1px;
+        font-family: 'Courier New', monospace;
+        text-shadow: 0 0 10px rgba(255, 170, 51, 0.4);
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .copy-btn {
+        background: linear-gradient(145deg, #4a8fff, #2266cc);
+        color: white; padding: 8px 16px; border-radius: 30px;
+        font-size: 11px; font-weight: bold; border: none; cursor: pointer;
+        box-shadow: 0 3px 0 #1a4499, 0 5px 12px rgba(74, 143, 255, 0.4),
+                    inset 0 1px 0 rgba(255,255,255,0.3);
+        transition: all 0.1s; display: flex; align-items: center; gap: 5px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .copy-btn:hover { background: linear-gradient(145deg, #5a9fff, #3377dd); transform: translateY(-1px); }
+    .copy-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1a4499, inset 0 1px 3px rgba(0,0,0,0.3); }
+    .copy-btn.copied {
+        background: linear-gradient(145deg, #55ff55, #22aa22) !important;
+        box-shadow: 0 3px 0 #117711, 0 0 20px rgba(85, 255, 85, 0.5);
+    }
+    .support-info { text-align: center; font-size: 12px; color: #88aacc; margin: 8px 0 15px; position: relative; z-index: 2; }
+    .support-info .highlight { color: #ffdd99; font-weight: bold; }
+    .catalog-link {
+        display: block; text-align: center; margin-top: 15px; padding: 12px 20px;
+        background: linear-gradient(135deg, rgba(51, 102, 255, 0.3), rgba(74, 143, 255, 0.2));
+        border: 1px solid rgba(100, 150, 255, 0.5); border-radius: 30px;
+        color: #ffffff; text-decoration: none; font-weight: bold; font-size: 13px;
+        transition: all 0.3s; position: relative; z-index: 2;
+        box-shadow: 0 4px 0 rgba(30, 60, 150, 0.5), 0 6px 15px rgba(51, 102, 255, 0.3),
+                    inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .catalog-link:hover {
+        background: linear-gradient(135deg, rgba(51, 102, 255, 0.5), rgba(74, 143, 255, 0.4));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 0 rgba(30, 60, 150, 0.5), 0 10px 25px rgba(51, 102, 255, 0.5),
+                    inset 0 1px 0 rgba(255,255,255,0.3);
+        text-shadow: 0 0 10px rgba(100, 150, 255, 0.8);
+    }
+    .catalog-link:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(30, 60, 150, 0.5), inset 0 1px 3px rgba(0,0,0,0.3); }
+    .catalog-emoji { font-size: 18px; margin-right: 8px; }
+    .thank-you {
+        text-align: center; margin-top: 15px; font-size: 13px;
+        color: #ffdd99; font-weight: bold; position: relative; z-index: 2;
+        text-shadow: 0 0 10px rgba(255, 170, 51, 0.5);
+    }
+    .footer-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(100, 150, 255, 0.4), transparent);
+        margin: 12px 0; position: relative; z-index: 2;
+    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 170, 51, 0.4); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 170, 51, 0.6); }
+    @media (max-width: 600px) {
+        .logo { padding: 10px 20px; }
+        .logo-icon img { width: 32px; height: 32px; }
+        .logo-text { font-size: 18px; }
+        .support-block { padding: 15px; }
+        .support-title { font-size: 18px; }
+        .phone-number { font-size: 14px; padding: 6px 12px; }
+        .dpad { grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); }
+        .dpad-btn { width: 44px; height: 44px; font-size: 18px; }
+        .mobile-btn { width: 50px; height: 50px; font-size: 22px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="logo-container">
+    <div class="logo">
+        <div class="logo-icon">
+            <img src="favicon.ico" alt="CubeCraft Pro" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%23ffaa33%22/><stop offset=%221%22 stop-color=%22%23ff7711%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22url(%23g)%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22%23ffffff%22>⛏</text></svg>'">
+        </div>
+        <div style="display: inline-block; vertical-align: middle; text-align: left;">
+            <span class="logo-text">CubeCraft Pro</span>
+        </div>
+    </div>
+</div>
+
+<div style="position: relative; z-index: 5;">
+    <div class="game-container">
+        <canvas id="gameCanvas" width="760" height="760"></canvas>
+        <button class="sound-toggle" id="soundToggle">🔊</button>
+        <div class="stats-indicator" id="statsIndicator">
+            <span>⚔️ <span id="killCountStat">0</span></span>
+            <span>🌙 <span id="nightsStat">0</span></span>
+        </div>
+        <div class="boss-hp-bar" id="bossHpBar">
+            <div class="boss-hp-fill" id="bossHpFill" style="width: 100%"></div>
+            <div class="boss-hp-text" id="bossHpText">👹 Босс</div>
+        </div>
+        <div class="info-panel">
+            <div class="stat">❤️ <span id="hp">20</span></div>
+            <div class="stat">🍗 <span id="hunger">20</span></div>
+            <div class="stat">🪵 <span id="wood">0</span></div>
+            <div class="stat">🪨 <span id="stone">0</span></div>
+            <div class="stat">🍖 <span id="food">0</span></div>
+            <div class="stat">🐟 <span id="fish">0</span></div>
+            <div class="stat">🧪 <span id="potions">0</span></div>
+            <div class="stat">🏹 <span id="arrows">0</span></div>
+            <div class="stat">🔥 <span id="torches">0</span></div>
+            <div class="stat">⭐<span id="level">1</span></div>
+            <div class="stat">🌍 <span id="biomeName">Лес</span></div>
+            <button id="resetBtn">🌱 Заново</button>
+        </div>
+        <div class="armor-indicator" id="armorIndicator">🛡️</div>
+        <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+        <div class="craft-panel" id="craftPanel">
+            <button class="craft-btn" id="craftAxe">🪓 (5🪵)</button>
+            <button class="craft-btn" id="craftPick">⛏️ (5🪨)</button>
+            <button class="craft-btn" id="craftSword">⚔️ (3🪵+2🪨)</button>
+            <button class="craft-btn" id="craftBow">🏹 (3🪵+2🪨)</button>
+            <button class="craft-btn" id="craftArrow">➹ (1🪵+1🪨→5)</button>
+            <button class="craft-btn" id="craftFishingRod">🎣 (3🪵+1🪨)</button>
+            <button class="craft-btn" id="craftBoat">🛶 (5🪵)</button>
+            <button class="craft-btn" id="craftPotion">🧪 (3🍖+1🪨)</button>
+            <button class="craft-btn" id="craftLeatherArmor">🛡️ (5🍖)</button>
+            <button class="craft-btn" id="craftStoneArmor">🪨 (10🪨)</button>
+            <button class="craft-btn" id="craftSharpening">✨ Точило (5🪨)</button>
+            <button class="craft-btn" id="craftBed">🛏️ (10🪵)</button>
+            <button class="craft-btn" id="craftTorch">🔥 (1🪵+1🪨)</button>
+            <button class="craft-btn" id="craftFood">🍲 (3🪵→2🍖)</button>
+            <button class="craft-btn" id="eatFood">🍖 Съесть</button>
+            <button class="craft-btn" id="eatFish">🐟 Рыбу</button>
+            <button class="craft-btn" id="usePotion">🧪 Зелье</button>
+            <button class="craft-btn" id="placeTorch">🔥 Факел(F)</button>
+        </div>
+        <div class="achievements-panel" id="achievementsPanel">🏆 Достижения: 0/11</div>
+        <div class="controls">
+            <span class="badge">⬆️⬇️⬅️➡️/WASD/ФЫВА | ЛКМ добыча | ПКМ ломать</span>
+            <span class="badge">⚔️ Space атака | R/К стрельба | X/Ч рыбалка | B/И лодка | ESC меню</span>
+        </div>
+        <div class="boat-indicator" id="boatIndicator">🛶 В лодке</div>
+        
+        <!-- МОБИЛЬНЫЕ КНОПКИ УПРАВЛЕНИЯ -->
+        <div class="mobile-controls">
+            <div class="dpad">
+                <div class="dpad-btn empty"></div>
+                <button class="dpad-btn mobile-btn" id="mUp">⬆️</button>
+                <div class="dpad-btn empty"></div>
+                <button class="dpad-btn mobile-btn" id="mLeft">⬅️</button>
+                <button class="dpad-btn mobile-btn info" id="mAttack">⚔️</button>
+                <button class="dpad-btn mobile-btn" id="mRight">➡️</button>
+                <div class="dpad-btn empty"></div>
+                <button class="dpad-btn mobile-btn" id="mDown">⬇️</button>
+                <div class="dpad-btn empty"></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="mobile-btn danger" id="mShoot" title="Стрелять">🏹</button>
+                <button class="mobile-btn" id="mTorch" title="Факел">🔥</button>
+                <button class="mobile-btn info" id="mFish" title="Рыбалка">🎣</button>
+                <button class="mobile-btn" id="mBoat" title="Лодка">🛶</button>
+            </div>
+        </div>
+    </div>
+    <canvas id="minimapCanvas" class="minimap" width="100" height="100"></canvas>
+</div>
+
+<div class="notification" id="notification"></div>
+
+<div class="overlay" id="menuOverlay">
+    <h1 class="menu-title">
+        <img src="favicon.ico" alt="" style="width: 48px; height: 48px; vertical-align: middle; margin-right: 15px; filter: drop-shadow(0 0 10px rgba(255,170,51,0.8));">
+        CubeCraft Pro
+    </h1>
+    <p>2 босса · Частицы окружения · Улучшенный визуал · 5-минутный цикл</p>
+    <button id="newGameBtn">🌱 Новая игра</button>
+    <button id="continueBtn" style="display:none;">▶ Продолжить</button>
+</div>
+
+<div class="overlay" id="deathOverlay">
+    <h1>💀 ВЫ ПОГИБЛИ</h1>
+    <p id="deathReason"></p>
+    <button id="respawnBtn">⚡ Возродиться у кровати</button>
+    <button id="newGameFromDeathBtn">🌱 Начать заново</button>
+</div>
+
+<div class="overlay" id="pauseOverlay">
+    <h1 style="color:#ffaa33;">⏸ ПАУЗА</h1>
+    <button id="resumeBtn">▶ Продолжить</button>
+    <button id="saveMenuBtn">💾 Сохранить и в меню</button>
+</div>
+
+<div class="support-container">
+    <div class="support-block">
+        <div class="support-title">🤝 ПОДДЕРЖАТЬ ПРОЕКТ 💙</div>
+        <div class="support-subtitle">
+            Приложение <strong>бесплатное</strong>. Было и останется.<br>
+            Если проект помог вам или вашим близким — можете поддержать разработку <strong>добровольным переводом</strong>.
+        </div>
+        <div class="footer-divider"></div>
+        <div class="phone-row">
+            <span class="phone-label">📱 Перевод по номеру:</span>
+            <span class="phone-number" id="phoneNumber">8-920-227-56-76</span>
+            <button class="copy-btn" id="copyPhoneBtn" onclick="copyPhone()">
+                <span id="copyIcon">📋</span>
+                <span id="copyText">Копировать</span>
+            </button>
+        </div>
+        <div class="support-info">
+            ✅ Деньги придут <span class="highlight">мгновенно</span>. 
+            <span class="highlight">Без комиссии</span>. 
+            <span class="highlight">Безопасно</span>.
+        </div>
+        <div class="thank-you">❤️ Спасибо за поддержку!</div>
+        <div class="footer-divider"></div>
+        <a href="https://ancf-hue.github.io/" target="_blank" rel="noopener noreferrer" class="catalog-link">
+            <span class="catalog-emoji">🌟</span>
+            Каталог бесплатных офлайн-приложений Anti-AI Shield
+            <span class="catalog-emoji">👉</span>
+        </a>
+    </div>
+</div>
+
+<script>
+function copyPhone() {
+    const phone = document.getElementById('phoneNumber').innerText;
+    const btn = document.getElementById('copyPhoneBtn');
+    const icon = document.getElementById('copyIcon');
+    const text = document.getElementById('copyText');
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(phone).then(() => showCopied(btn, icon, text))
+            .catch(() => fallbackCopy(phone, btn, icon, text));
+    } else fallbackCopy(phone, btn, icon, text);
+}
+function fallbackCopy(text, btn, icon, textEl) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.left = '-9999px';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { if (document.execCommand('copy')) showCopied(btn, icon, textEl); else alert('Скопируйте вручную: ' + text); }
+    catch (e) { alert('Скопируйте вручную: ' + text); }
+    document.body.removeChild(ta);
+}
+function showCopied(btn, icon, textEl) {
+    btn.classList.add('copied'); icon.innerText = '✅'; textEl.innerText = 'Скопировано!';
+    setTimeout(() => { btn.classList.remove('copied'); icon.innerText = '📋'; textEl.innerText = 'Копировать'; }, 2000);
+}
+
+(function(){
+    const SIZE = 20;
+    const TS = 38;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = SIZE * TS;
+    canvas.height = SIZE * TS;
+    const minimapCanvas = document.getElementById('minimapCanvas');
+    const minimapCtx = minimapCanvas.getContext('2d');
+
+    const BIOMES = [
+        { name: "🌲 Лес",      bg: "#3c8c40", tree: 0.45, stone: 0.05, grass: "#5a9e4e", food: 0.08, water: 0 },
+        { name: "🏜️ Пустыня",  bg: "#e8c87a", tree: 0.02, stone: 0.25, grass: "#dbb45c", food: 0.01, water: 0 },
+        { name: "❄️ Снег",     bg: "#b0d4f0", tree: 0.18, stone: 0.30, grass: "#c0e0ff", food: 0.03, water: 0 },
+        { name: "🌋 Пустошь",  bg: "#6a3e2a", tree: 0.01, stone: 0.45, grass: "#8b5a3a", food: 0.00, water: 0 },
+        { name: "💧 Озеро",    bg: "#2a6a8a", tree: 0, stone: 0.02, grass: "#4a9aba", food: 0.10, water: 0.9 }
+    ];
+
+    const MOB_TYPES = [
+        { name: "🧟", hp: 3, dmg: 1, color: "#4a7a3a", speed: 0.4, exp: 5 },
+        { name: "💀", hp: 2, dmg: 1, color: "#aaaaaa", speed: 0.35, exp: 7 },
+        { name: "🕷️", hp: 2, dmg: 1, color: "#8b4513", speed: 0.55, exp: 6 }
+    ];
+
+    const TREE_TYPES = [
+        { name: "Дуб", color: "#2c6e2c", woodDrop: 3, exp: 2, trunkColor: "#4a2e1a" },
+        { name: "Берёза", color: "#b0d48c", woodDrop: 2, exp: 1, trunkColor: "#e8e0c0" }
+    ];
+
+    const BOSSES = {
+        shadow: { name: "👹 Лорд Теней", hp: 30, dmg: 3, exp: 50, color: "#660000", aura: "#ff0000" },
+        skeleton: { name: "💀 Король Скелетов", hp: 50, dmg: 4, exp: 100, color: "#4a4a6a", aura: "#8888ff" }
+    };
+
+    const ACHIEVEMENTS_LIST = [
+        { id: "first_wood", name: "🌱 Первый шаг", desc: "10 древесины", condition: (p) => p.wood >= 10 },
+        { id: "first_stone", name: "🪨 Каменная эра", desc: "10 камня", condition: (p) => p.stone >= 10 },
+        { id: "first_food", name: "🍖 Повар", desc: "15 еды", condition: (p) => p.food >= 15 },
+        { id: "first_kill", name: "⚔️ Охотник", desc: "5 мобов", condition: (p,k) => k >= 5 },
+        { id: "full_armor", name: "🛡️ Неуязвимый", desc: "Создать броню", condition: (p) => p.hasLeatherArmor || p.hasStoneArmor },
+        { id: "night_survivor", name: "🌙 Ночной страж", desc: "3 ночи", condition: (p) => p.nightsSurvived >= 3 },
+        { id: "master_level", name: "⭐ Мастер", desc: "5 уровень", condition: (p) => p.level >= 5 },
+        { id: "boss_killer", name: "👹 Убийца Лорда", desc: "Победить Лорда Теней", condition: (p) => p.shadowLordKilled },
+        { id: "skeleton_king", name: "💀 Король пал", desc: "Победить Короля Скелетов", condition: (p) => p.skeletonKingKilled },
+        { id: "fisherman", name: "🎣 Рыбак", desc: "10 рыб", condition: (p) => p.fishCaught >= 10 },
+        { id: "sharp_weapon", name: "✨ Заточка", desc: "Улучшить оружие", condition: (p) => p.sharpened }
+    ];
+
+    let world = [], biomeMap = [], caveMap = [];
+    let torches = [];
+    let player = createNewPlayer();
+    let boss = null;
+    let currentBossType = null;
+    let mobs = [];
+    let projectiles = [];
+    let particles = [];
+    let ambientParticles = [];
+    let attackEffects = [];
+    let gameTime = 0.2;
+    let killCount = 0;
+    let isPaused = false;
+    let isDead = false;
+    let soundEnabled = true;
+    let weather = 0;
+    let weatherTimer = 0;
+    let achievements = [];
+    let inBoat = false;
+    let fishingRodActive = false;
+    let fishingTimer = 0;
+    let mousePos = { x: 0, y: 0 };
+    let damageFlash = 0;
+    let lastMoveDir = { x: 1, y: 0 }; // Последнее направление движения для стрельбы
+
+    let raindrops = [];
+    for (let i = 0; i < 60; i++) {
+        raindrops.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: 3 + Math.random() * 4 });
+    }
+
+    function createNewPlayer() {
+        return {
+            x: 10, y: 10, hp: 20, maxHp: 20, hunger: 20, maxHunger: 20,
+            wood: 0, stone: 0, food: 0, fish: 0, potions: 0, arrows: 0, torches: 0,
+            exp: 0, level: 1,
+            hasAxe: false, hasPick: false, hasSword: false, hasBow: false, 
+            hasFishingRod: false, hasBoat: false, hasBed: false, 
+            hasLeatherArmor: false, hasStoneArmor: false,
+            sharpened: false,
+            spawnX: 10, spawnY: 10,
+            attackCooldown: 0, invincibleFrames: 0,
+            nightsSurvived: 0, shadowLordKilled: false, skeletonKingKilled: false, fishCaught: 0
+        };
+    }
+
+    let audioCtx = null;
+    function ensureAudioContext() {
+        if (!audioCtx) {
+            try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } 
+            catch(e) { soundEnabled = false; return false; }
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+        if (audioCtx.state === 'closed') {
+            try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            catch(e) { soundEnabled = false; return false; }
+        }
+        return true;
+    }
+    function initAudio() { ensureAudioContext(); }
+    function playSound(freq, duration, type = 'square', volume = 0.06) {
+        if (!soundEnabled || !ensureAudioContext()) return;
+        try {
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.value = freq;
+            gain.gain.setValueAtTime(volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + duration);
+        } catch(e) {}
+    }
+    const SFX = {
+        hit: () => playSound(200, 0.08, 'square', 0.08),
+        hurt: () => playSound(100, 0.2, 'sawtooth', 0.12),
+        level: () => { playSound(440, 0.12, 'sine', 0.1); setTimeout(()=>playSound(660, 0.12, 'sine', 0.1), 100); setTimeout(()=>playSound(880, 0.2, 'sine', 0.1), 200); },
+        craft: () => playSound(600, 0.1, 'triangle', 0.1),
+        eat: () => playSound(300, 0.12, 'sine', 0.1),
+        shoot: () => playSound(800, 0.08, 'sine', 0.07),
+        night: () => { playSound(150, 0.5, 'sine', 0.07); setTimeout(()=>playSound(130, 0.6, 'sine', 0.05), 200); },
+        dawn: () => { playSound(523, 0.15, 'sine', 0.1); setTimeout(()=>playSound(659, 0.15, 'sine', 0.1), 120); setTimeout(()=>playSound(784, 0.2, 'sine', 0.1), 240); },
+        place: () => playSound(500, 0.1, 'triangle', 0.08),
+        chest: () => { playSound(400, 0.1, 'sine', 0.1); setTimeout(()=>playSound(600, 0.15, 'sine', 0.1), 80); },
+        death: () => { playSound(200, 0.3, 'sawtooth', 0.15); setTimeout(()=>playSound(100, 0.5, 'sawtooth', 0.15), 200); },
+        fish: () => { playSound(350, 0.08, 'sine', 0.12); setTimeout(()=>playSound(400, 0.1, 'sine', 0.08), 60); },
+        boss: () => { playSound(80, 0.4, 'sawtooth', 0.18); setTimeout(()=>playSound(60, 0.6, 'sawtooth', 0.18), 200); setTimeout(()=>playSound(40, 0.8, 'sawtooth', 0.15), 400); },
+        sharpen: () => { playSound(400, 0.08, 'square', 0.08); setTimeout(()=>playSound(600, 0.12, 'square', 0.08), 80); },
+        step: () => playSound(180, 0.05, 'triangle', 0.04),
+        water: () => playSound(250, 0.08, 'sine', 0.06),
+        arrowHit: () => playSound(300, 0.06, 'square', 0.06),
+        attack: () => playSound(400, 0.06, 'square', 0.07)
+    };
+
+    let notifTimeout = null;
+    function showNotification(text) {
+        const n = document.getElementById('notification');
+        n.innerText = text; n.classList.add('show');
+        if (notifTimeout) clearTimeout(notifTimeout);
+        notifTimeout = setTimeout(() => n.classList.remove('show'), 2500);
+    }
+
+    function initAchievements() {
+        achievements = ACHIEVEMENTS_LIST.map(a => ({ ...a, unlocked: false }));
+        updateAchievementsUI();
+    }
+    function updateAchievementsUI() {
+        const unlocked = achievements.filter(a => a.unlocked).length;
+        document.getElementById('achievementsPanel').innerHTML = `🏆 Достижения: ${unlocked}/${achievements.length}`;
+    }
+    function checkAchievements() {
+        for (let a of achievements) {
+            if (!a.unlocked && a.condition(player, killCount)) {
+                a.unlocked = true;
+                showNotification(`🏆 ${a.name} — ${a.desc}`);
+                SFX.level();
+            }
+        }
+        updateAchievementsUI();
+    }
+
+    function generateWorld() {
+        const w = Array.from({length: SIZE}, () => Array(SIZE).fill(null));
+        const b = Array.from({length: SIZE}, () => Array(SIZE).fill(0));
+        const caves = Array.from({length: SIZE}, () => Array(SIZE).fill(false));
+        const centers = [];
+        const numCenters = 5 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < numCenters; i++) {
+            centers.push({ x: Math.random() * SIZE, y: Math.random() * SIZE, biome: Math.floor(Math.random() * BIOMES.length) });
+        }
+        centers.push({ x: 10, y: 10, biome: 0 });
+        for (let i = 0; i < SIZE; i++) {
+            for (let j = 0; j < SIZE; j++) {
+                let minD = Infinity, biomeId = 0;
+                for (const c of centers) {
+                    const d = (c.x - i) ** 2 + (c.y - j) ** 2;
+                    if (d < minD) { minD = d; biomeId = c.biome; }
+                }
+                b[i][j] = biomeId;
+                const bio = BIOMES[biomeId];
+                const r = Math.random();
+                let type = "grass"; let treeType = null;
+                if (bio.name === "💧 Озеро" && Math.random() < bio.water) type = "water";
+                else if (r < bio.tree) { type = "tree"; treeType = Math.random() < 0.7 ? TREE_TYPES[0] : TREE_TYPES[1]; }
+                else if (r < bio.tree + bio.stone) type = "stone";
+                else if (r < bio.tree + bio.stone + bio.food) type = "food";
+                else if (Math.random() < 0.02 && i > 2 && i < SIZE-2 && j > 2 && j < SIZE-2 && (i !== 10 || j !== 10)) type = "chest";
+                w[i][j] = { type, treeType, durability: type === "tree" ? 3 : type === "stone" ? 5 : 1, looted: false };
+                if (Math.random() < 0.12 && type !== "water") caves[i][j] = true;
+            }
+        }
+        for (let dx = -1; dx <= 1; dx++)
+            for (let dy = -1; dy <= 1; dy++) {
+                const nx = player.spawnX + dx, ny = player.spawnY + dy;
+                if (nx >= 0 && ny >= 0 && nx < SIZE && ny < SIZE)
+                    w[nx][ny] = { type: "grass", durability: 1, treeType: null, looted: false };
+            }
+        return { w, b, caves };
+    }
+
+    function newGame() {
+        player = createNewPlayer();
+        const gen = generateWorld();
+        world = gen.w; biomeMap = gen.b; caveMap = gen.caves;
+        torches = []; mobs = []; boss = null; currentBossType = null;
+        projectiles = []; particles = []; ambientParticles = []; attackEffects = [];
+        gameTime = 0.2; killCount = 0;
+        weather = 0; weatherTimer = 0;
+        inBoat = false; fishingRodActive = false; damageFlash = 0;
+        lastMoveDir = { x: 1, y: 0 };
+        initAchievements();
+        isDead = false; isPaused = false;
+        hideAllOverlays();
+        updateUI(); draw(); drawMinimap();
+        updateArmorIndicator(); updateStatsIndicator();
+    }
+
+    function continueGame() {
+        if (loadGame()) {
+            isDead = false; isPaused = false;
+            hideAllOverlays();
+            updateUI(); draw(); drawMinimap();
+            updateAchievementsUI(); updateArmorIndicator(); updateStatsIndicator();
+            if (boss) updateBossHpBar();
+        } else newGame();
+    }
+
+    function updateArmorIndicator() {
+        const div = document.getElementById('armorIndicator');
+        if (player.hasStoneArmor) div.innerHTML = "🪨 Каменная -60%";
+        else if (player.hasLeatherArmor) div.innerHTML = "🛡️ Кожаная -30%";
+        else div.innerHTML = "🛡️ Нет брони";
+    }
+    function updateStatsIndicator() {
+        document.getElementById('killCountStat').innerText = killCount;
+        document.getElementById('nightsStat').innerText = player.nightsSurvived;
+    }
+
+    function hideAllOverlays() {
+        document.getElementById('menuOverlay').classList.remove('show');
+        document.getElementById('deathOverlay').classList.remove('show');
+        document.getElementById('pauseOverlay').classList.remove('show');
+    }
+    function showMenu() {
+        isPaused = true;
+        const hasSave = localStorage.getItem('cubecraft_pro_save') !== null;
+        document.getElementById('continueBtn').style.display = hasSave ? 'block' : 'none';
+        document.getElementById('menuOverlay').classList.add('show');
+    }
+
+    function saveGame() {
+        try {
+            localStorage.setItem('cubecraft_pro_save', JSON.stringify({
+                player, world, biomeMap, caveMap, torches, mobs, boss, currentBossType,
+                gameTime, killCount, achievements, weather, weatherTimer, inBoat
+            }));
+            return true;
+        } catch(e) { return false; }
+    }
+    function loadGame() {
+        try {
+            const s = localStorage.getItem('cubecraft_pro_save');
+            if (!s) return false;
+            const d = JSON.parse(s);
+            player = Object.assign(createNewPlayer(), d.player);
+            world = d.world; biomeMap = d.biomeMap; 
+            caveMap = d.caveMap || Array.from({length: SIZE}, () => Array(SIZE).fill(false));
+            torches = d.torches || [];
+            mobs = d.mobs || [];
+            boss = d.boss || null;
+            currentBossType = d.currentBossType || null;
+            gameTime = d.gameTime || 0.2;
+            killCount = d.killCount || 0;
+            achievements = d.achievements || ACHIEVEMENTS_LIST.map(a => ({ ...a, unlocked: false }));
+            weather = d.weather || 0;
+            weatherTimer = d.weatherTimer || 0;
+            inBoat = d.inBoat || false;
+            return true;
+        } catch(e) { return false; }
+    }
+
+    function addExp(amount) {
+        player.exp += amount;
+        const expNeeded = player.level * 10;
+        if (player.exp >= expNeeded) {
+            player.exp -= expNeeded;
+            player.level++;
+            player.maxHp = 20 + (player.level - 1) * 2;
+            player.hp = Math.min(player.maxHp, player.hp + 5);
+            addParticle(player.x * TS + TS/2, player.y * TS + TS/2, "🌟 УРОВЕНЬ " + player.level + "!", "#ffff55");
+            SFX.level();
+            showNotification("🌟 Новый уровень! HP: " + player.maxHp);
+            checkAchievements();
+        }
+        updateUI();
+    }
+    function addParticle(x, y, text, color = "#ffcc66") {
+        particles.push({ x, y, text, color, life: 40, vy: -0.8 });
+    }
+    function addAttackEffect(x, y, color = "#ffff88") {
+        attackEffects.push({ x, y, color, life: 15, radius: 5 });
+    }
+
+    function updateUI() {
+        document.getElementById('hp').innerText = Math.ceil(player.hp);
+        document.getElementById('hunger').innerText = Math.floor(player.hunger);
+        document.getElementById('wood').innerText = player.wood;
+        document.getElementById('stone').innerText = player.stone;
+        document.getElementById('food').innerText = player.food;
+        document.getElementById('fish').innerText = player.fish;
+        document.getElementById('potions').innerText = player.potions;
+        document.getElementById('arrows').innerText = player.arrows;
+        document.getElementById('torches').innerText = player.torches;
+        document.getElementById('level').innerText = player.level;
+        if (world[player.x]?.[player.y]) {
+            document.getElementById('biomeName').innerText = BIOMES[biomeMap[player.x][player.y]].name;
+        }
+        const expNeeded = player.level * 10;
+        document.getElementById('xpFill').style.width = ((player.exp / expNeeded) * 100) + "%";
+        const tile = world[player.x]?.[player.y];
+        document.getElementById('boatIndicator').style.display = (inBoat && tile && tile.type === "water") ? "block" : "none";
+        document.getElementById('craftAxe').disabled = player.wood < 5 || player.hasAxe;
+        document.getElementById('craftPick').disabled = player.stone < 5 || player.hasPick;
+        document.getElementById('craftSword').disabled = player.wood < 3 || player.stone < 2 || player.hasSword;
+        document.getElementById('craftBow').disabled = player.wood < 3 || player.stone < 2 || player.hasBow;
+        document.getElementById('craftArrow').disabled = player.wood < 1 || player.stone < 1;
+        document.getElementById('craftFishingRod').disabled = player.wood < 3 || player.stone < 1 || player.hasFishingRod;
+        document.getElementById('craftBoat').disabled = player.wood < 5 || player.hasBoat;
+        document.getElementById('craftPotion').disabled = player.food < 3 || player.stone < 1;
+        document.getElementById('craftLeatherArmor').disabled = player.food < 5 || player.hasLeatherArmor;
+        document.getElementById('craftStoneArmor').disabled = player.stone < 10 || player.hasStoneArmor;
+        document.getElementById('craftSharpening').disabled = player.stone < 5 || player.sharpened;
+        document.getElementById('craftBed').disabled = player.wood < 10 || player.hasBed;
+        document.getElementById('craftTorch').disabled = player.wood < 1 || player.stone < 1;
+        document.getElementById('craftFood').disabled = player.wood < 3;
+        document.getElementById('eatFood').disabled = player.food < 1 || player.hunger >= player.maxHunger;
+        document.getElementById('eatFish').disabled = player.fish < 1 || player.hunger >= player.maxHunger;
+        document.getElementById('usePotion').disabled = player.potions < 1 || player.hp >= player.maxHp;
+        document.getElementById('placeTorch').disabled = player.torches < 1 || (world[player.x][player.y] && world[player.x][player.y].type !== "grass");
+    }
+
+    function getDamageReduction() {
+        if (player.hasStoneArmor) return 0.6;
+        if (player.hasLeatherArmor) return 0.3;
+        return 0;
+    }
+    function getDamageBonus() {
+        let base = 1;
+        if (player.hasSword) base = 3;
+        else if (player.hasAxe) base = 2;
+        if (player.sharpened) base += 1;
+        return base;
+    }
+    function sharpenWeapon() {
+        if (player.stone >= 5 && !player.sharpened) {
+            player.stone -= 5; player.sharpened = true;
+            SFX.sharpen();
+            showNotification("✨ Оружие заточено! Урон +1");
+            checkAchievements(); updateUI();
+        }
+    }
+
+    function spawnBoss(type) {
+        if (boss !== null) return;
+        let x, y, tries = 0;
+        do {
+            x = 5 + Math.floor(Math.random() * (SIZE - 10));
+            y = 5 + Math.floor(Math.random() * (SIZE - 10));
+            tries++;
+        } while ((world[x][y].type !== "grass" && world[x][y].type !== "food") && tries < 20);
+        const bossData = BOSSES[type];
+        boss = { x, y, hp: bossData.hp, maxHp: bossData.hp, dmg: bossData.dmg, exp: bossData.exp, name: bossData.name, type: type };
+        currentBossType = type;
+        showNotification(`${bossData.name} появился! Будьте осторожны!`);
+        SFX.boss();
+        document.getElementById('bossHpBar').style.display = "block";
+        updateBossHpBar();
+    }
+    function updateBossHpBar() {
+        if (boss) {
+            const percent = (boss.hp / boss.maxHp) * 100;
+            document.getElementById('bossHpFill').style.width = percent + "%";
+            document.getElementById('bossHpText').innerHTML = `${boss.name} ${boss.hp}/${boss.maxHp}`;
+            document.getElementById('bossHpBar').style.display = "block";
+        } else {
+            document.getElementById('bossHpBar').style.display = "none";
+        }
+    }
+
+    function startFishing() {
+        if (!player.hasFishingRod || fishingRodActive) return;
+        const tile = world[player.x][player.y];
+        if (tile.type !== "water") { showNotification("🎣 Рыбачить можно только стоя в воде!"); return; }
+        fishingRodActive = true; fishingTimer = 0;
+        showNotification("🎣 Забросили удочку... Ждите поклёвку!");
+    }
+    function updateFishing() {
+        if (!fishingRodActive) return;
+        fishingTimer++;
+        if (fishingTimer >= 20) {
+            fishingRodActive = false;
+            player.fish += 1; player.fishCaught++;
+            addExp(3);
+            addParticle(player.x * TS + TS/2, player.y * TS + TS/2, "🐟 +1 рыба!", "#55aaff");
+            SFX.fish();
+            showNotification("🐟 Вы поймали рыбу!");
+            checkAchievements(); updateUI();
+        }
+    }
+
+    function shootArrow(targetX, targetY) {
+        if (!player.hasBow || player.arrows < 1) { if (player.arrows < 1) showNotification("🏹 Нет стрел!"); return; }
+        if (player.attackCooldown > 0) return;
+        player.arrows -= 1; player.attackCooldown = 10;
+        const dx = targetX - (player.x + 0.5);
+        const dy = targetY - (player.y + 0.5);
+        const len = Math.sqrt(dx*dx + dy*dy);
+        if (len > 0) {
+            const vx = (dx / len) * 0.8; const vy = (dy / len) * 0.8;
+            const arrowDamage = 2 + (player.sharpened ? 1 : 0);
+            projectiles.push({ x: player.x + 0.5, y: player.y + 0.5, vx, vy, life: 40, damage: arrowDamage, owner: "player" });
+        }
+        SFX.shoot(); updateUI();
+    }
+    
+    // Стрельба в направлении последнего движения (для мобильных)
+    function shootInLastDirection() {
+        if (!player.hasBow || player.arrows < 1) {
+            if (player.arrows < 1) showNotification("🏹 Нет стрел!");
+            return;
+        }
+        shootArrow(player.x + 0.5 + lastMoveDir.x * 5, player.y + 0.5 + lastMoveDir.y * 5);
+    }
+    
+    function updateProjectiles() {
+        for (let i = 0; i < projectiles.length; i++) {
+            const p = projectiles[i];
+            p.x += p.vx; p.y += p.vy; p.life--;
+            for (let m of mobs) {
+                if (Math.abs(p.x - (m.x + 0.5)) < 0.6 && Math.abs(p.y - (m.y + 0.5)) < 0.6) {
+                    m.hp -= p.damage;
+                    addParticle(m.x*TS+TS/2, m.y*TS+TS/2, `-${p.damage}`, "#ffaa33");
+                    addAttackEffect(m.x*TS+TS/2, m.y*TS+TS/2, "#ffaa33");
+                    p.life = -1; SFX.arrowHit();
+                    if (m.hp <= 0) {
+                        addExp(m.type.exp);
+                        player.food += 1;
+                        killCount++;
+                        checkAchievements();
+                        updateStatsIndicator();
+                    }
+                    break;
+                }
+            }
+            if (boss && p.life > 0 && Math.abs(p.x - (boss.x + 0.5)) < 0.7 && Math.abs(p.y - (boss.y + 0.5)) < 0.7) {
+                boss.hp -= p.damage;
+                addParticle(boss.x*TS+TS/2, boss.y*TS+TS/2, `-${p.damage}`, "#ff5555");
+                addAttackEffect(boss.x*TS+TS/2, boss.y*TS+TS/2, "#ff5555");
+                p.life = -1; SFX.arrowHit();
+                if (boss.hp <= 0) {
+                    addExp(boss.exp);
+                    if (boss.type === 'shadow') {
+                        player.shadowLordKilled = true;
+                        player.potions += 2;
+                        player.torches += 5;
+                        showNotification("👑 Вы победили Лорда Теней! +2🧪 +5🔥");
+                    } else if (boss.type === 'skeleton') {
+                        player.skeletonKingKilled = true;
+                        player.potions += 5;
+                        player.arrows += 20;
+                        showNotification("👑 Король Скелетов пал! +5🧪 +20🏹");
+                    }
+                    SFX.level();
+                    boss = null;
+                    currentBossType = null;
+                    checkAchievements();
+                }
+                updateBossHpBar();
+            }
+        }
+        projectiles = projectiles.filter(p => p.life > 0 && p.x > 0 && p.x < SIZE && p.y > 0 && p.y < SIZE);
+    }
+
+    function updateAmbientParticles() {
+        const isNight = gameTime > 0.66;
+        if (Math.random() < 0.3) {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height;
+            const tileX = Math.floor(x / TS);
+            const tileY = Math.floor(y / TS);
+            if (tileX >= 0 && tileX < SIZE && tileY >= 0 && tileY < SIZE) {
+                const bioId = biomeMap[tileX][tileY];
+                const bio = BIOMES[bioId];
+                let particle = null;
+                if (isNight && Math.random() < 0.3) {
+                    particle = { x, y, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, life: 120, maxLife: 120, color: "#ffff88", size: 2, type: 'firefly' };
+                } else if (bio.name === "❄️ Снег") {
+                    particle = { x, y, vx: (Math.random()-0.5)*0.3, vy: 0.5 + Math.random()*0.5, life: 100, maxLife: 100, color: "#ffffff", size: 2, type: 'snow' };
+                } else if (bio.name === "🌲 Лес" && Math.random() < 0.2) {
+                    particle = { x, y, vx: 0.3 + Math.random()*0.3, vy: 0.2 + Math.random()*0.3, life: 80, maxLife: 80, color: "#8b5a2b", size: 2, type: 'leaf', rot: Math.random() * Math.PI };
+                } else if (bio.name === "🏜️ Пустыня" && Math.random() < 0.3) {
+                    particle = { x, y, vx: 0.5 + Math.random()*0.5, vy: 0.1, life: 60, maxLife: 60, color: "#d4af37", size: 1, type: 'sand' };
+                }
+                if (particle) ambientParticles.push(particle);
+            }
+        }
+        ambientParticles = ambientParticles.filter(p => {
+            p.x += p.vx; p.y += p.vy; p.life--;
+            if (p.type === 'firefly') {
+                p.vx += (Math.random()-0.5)*0.1; p.vy += (Math.random()-0.5)*0.1;
+                p.vx = Math.max(-0.5, Math.min(0.5, p.vx));
+                p.vy = Math.max(-0.5, Math.min(0.5, p.vy));
+            }
+            if (p.type === 'leaf') p.rot += 0.05;
+            return p.life > 0 && p.x > 0 && p.x < canvas.width && p.y < canvas.height;
+        });
+        if (ambientParticles.length > 80) ambientParticles = ambientParticles.slice(-80);
+    }
+
+    function tick() {
+        if (isPaused || isDead) return;
+        const wasNight = gameTime > 0.66;
+        gameTime = (gameTime + 0.8 / 300000) % 1;
+        const isNight = gameTime > 0.66;
+        if (isNight && !wasNight) {
+            SFX.night();
+            showNotification("🌙 Наступила ночь...");
+        } else if (!isNight && wasNight) {
+            player.nightsSurvived++;
+            SFX.dawn();
+            showNotification(`☀️ Рассвет! Ночей пережито: ${player.nightsSurvived}`);
+            checkAchievements(); updateStatsIndicator();
+            if (player.nightsSurvived === 5 && !player.shadowLordKilled && player.level >= 3) {
+                spawnBoss('shadow');
+            } else if (player.nightsSurvived === 10 && !player.skeletonKingKilled && player.level >= 5) {
+                spawnBoss('skeleton');
+            }
+        }
+        updateFishing();
+        updateProjectiles();
+        updateAmbientParticles();
+        weatherTimer++;
+        if (weatherTimer > 1800) {
+            weather = Math.random() < 0.3 ? 1 : 0;
+            weatherTimer = 0;
+            if (weather === 1) showNotification("🌧️ Начался дождь!");
+        }
+        const hungerRate = inBoat ? 0.015 : 0.03;
+        player.hunger = Math.max(0, player.hunger - (weather === 1 ? hungerRate * 0.7 : hungerRate));
+        if (player.hunger <= 0 && Math.random() < 0.03) {
+            player.hp = Math.max(0, player.hp - 1);
+            if (player.hp <= 0) die("Вы умерли от голода...");
+        } else if (player.hunger > 16 && player.hp < player.maxHp && Math.random() < 0.01) {
+            player.hp = Math.min(player.maxHp, player.hp + 0.3);
+        }
+        if (isNight && mobs.length < 5 && Math.random() < 0.025) spawnMob();
+        if (!isNight) {
+            mobs.forEach(m => m.hp -= 0.3);
+            mobs = mobs.filter(m => m.hp > 0);
+        }
+        mobs.forEach(m => {
+            if (m.hp <= 0) return;
+            if (Math.random() < m.type.speed) {
+                const dx = Math.sign(player.x - m.x);
+                const dy = Math.sign(player.y - m.y);
+                let nx = m.x, ny = m.y;
+                if (Math.random() < 0.5 && dx !== 0) nx += dx;
+                else if (dy !== 0) ny += dy;
+                if (nx >= 0 && ny >= 0 && nx < SIZE && ny < SIZE) {
+                    const t = world[nx][ny].type;
+                    if ((t === "grass" || t === "food") && !isTorchAt(nx, ny) && !isTorchNear(nx, ny, 2)) {
+                        m.x = nx; m.y = ny;
+                    }
+                }
+            }
+            if (Math.abs(m.x - player.x) + Math.abs(m.y - player.y) <= 1) {
+                if (Math.random() < 0.12 && player.invincibleFrames <= 0) {
+                    let dmg = m.type.dmg * (1 - getDamageReduction());
+                    const finalDmg = Math.max(1, Math.round(dmg));
+                    player.hp = Math.max(0, player.hp - finalDmg);
+                    player.invincibleFrames = 12;
+                    damageFlash = 10;
+                    SFX.hurt();
+                    addParticle(player.x*TS+TS/2, player.y*TS+TS/2, `-${finalDmg}`, "#ff5555");
+                    if (player.hp <= 0) die(`Вас убил ${m.type.name}...`);
+                }
+            }
+        });
+        if (boss) {
+            if (Math.random() < 0.5) {
+                const dx = Math.sign(player.x - boss.x);
+                const dy = Math.sign(player.y - boss.y);
+                let nx = boss.x, ny = boss.y;
+                if (Math.random() < 0.5 && dx !== 0) nx += dx;
+                else if (dy !== 0) ny += dy;
+                if (nx >= 0 && ny >= 0 && nx < SIZE && ny < SIZE) {
+                    const t = world[nx][ny].type;
+                    if (t !== "tree" && t !== "stone" && t !== "water") {
+                        boss.x = nx; boss.y = ny;
+                    }
+                }
+            }
+            if (Math.abs(boss.x - player.x) + Math.abs(boss.y - player.y) <= 1) {
+                if (Math.random() < 0.18 && player.invincibleFrames <= 0) {
+                    let dmg = boss.dmg * (1 - getDamageReduction());
+                    const finalDmg = Math.max(1, Math.round(dmg));
+                    player.hp = Math.max(0, player.hp - finalDmg);
+                    player.invincibleFrames = 15;
+                    damageFlash = 15;
+                    SFX.hurt();
+                    addParticle(player.x*TS+TS/2, player.y*TS+TS/2, `-${finalDmg}`, "#ff5555");
+                    if (player.hp <= 0) die(`Вас убил ${boss.name}...`);
+                }
+            }
+            updateBossHpBar();
+        }
+        mobs = mobs.filter(m => m.hp > 0);
+        if (player.invincibleFrames > 0) player.invincibleFrames--;
+        if (player.attackCooldown > 0) player.attackCooldown--;
+        if (damageFlash > 0) damageFlash--;
+        particles = particles.filter(p => { p.life--; p.y += p.vy; return p.life > 0; });
+        attackEffects = attackEffects.filter(e => { e.life--; e.radius += 2; return e.life > 0; });
+        updateUI();
+    }
+
+    function isTorchAt(x, y) { return torches.some(t => t.x === x && t.y === y); }
+    function isTorchNear(x, y, radius) {
+        for (const t of torches) if (Math.abs(t.x - x) + Math.abs(t.y - y) <= radius) return true;
+        return false;
+    }
+    function spawnMob() {
+        let x, y, tries = 0;
+        do {
+            const side = Math.floor(Math.random() * 4);
+            if (side === 0) { x = 0; y = Math.floor(Math.random() * SIZE); }
+            else if (side === 1) { x = SIZE-1; y = Math.floor(Math.random() * SIZE); }
+            else if (side === 2) { x = Math.floor(Math.random() * SIZE); y = 0; }
+            else { x = Math.floor(Math.random() * SIZE); y = SIZE-1; }
+            tries++;
+        } while (((world[x][y].type !== "grass" && world[x][y].type !== "food") || isTorchNear(x, y, 3)) && tries < 15);
+        if (tries >= 15) return;
+        if (Math.abs(x - player.x) < 2 && Math.abs(y - player.y) < 2) return;
+        const type = MOB_TYPES[Math.floor(Math.random() * MOB_TYPES.length)];
+        mobs.push({ x, y, hp: type.hp, maxHp: type.hp, type });
+    }
+    function die(reason) {
+        isDead = true;
+        document.getElementById('deathReason').innerText = reason;
+        document.getElementById('deathOverlay').classList.add('show');
+        SFX.death();
+        localStorage.removeItem('cubecraft_pro_save');
+        document.getElementById('bossHpBar').style.display = "none";
+    }
+
+    let lastStepSound = 0, lastWaterSound = 0;
+    function movePlayer(dx, dy) {
+        if (isPaused || isDead) return;
+        const nx = player.x + dx, ny = player.y + dy;
+        if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE) return;
+        const tile = world[nx][ny];
+        if (tile.type === "water") {
+            if (inBoat) {
+                player.x = nx; player.y = ny;
+                player.hunger = Math.max(0, player.hunger - 0.02);
+                const now = Date.now();
+                if (now - lastWaterSound > 300) { SFX.water(); lastWaterSound = now; }
+                if (dx !== 0 || dy !== 0) lastMoveDir = { x: dx, y: dy };
+            }
+            return;
+        }
+        if (inBoat) { inBoat = false; showNotification("🛶 Вы вышли из лодки"); }
+        if (tile.type === "tree" || tile.type === "stone") return;
+        player.x = nx; player.y = ny;
+        if (dx !== 0 || dy !== 0) lastMoveDir = { x: dx, y: dy };
+        player.hunger = Math.max(0, player.hunger - 0.04);
+        const now = Date.now();
+        if (now - lastStepSound > 250 && world[player.x][player.y].type === "grass") {
+            SFX.step(); lastStepSound = now;
+        }
+        updateUI();
+    }
+
+    function harvestTile(tx, ty) {
+        if (tx < 0 || ty < 0 || tx >= SIZE || ty >= SIZE) return;
+        if (Math.abs(tx - player.x) + Math.abs(ty - player.y) > 1) return;
+        const tile = world[tx][ty];
+        if (tile.type === "water") return;
+        if (tile.type === "chest" && !tile.looted) {
+            tile.looted = true;
+            let loot = "";
+            const rand = Math.random();
+            if (rand < 0.3) { player.wood += 8; loot = "+8🪵"; }
+            else if (rand < 0.6) { player.stone += 6; loot = "+6🪨"; }
+            else if (rand < 0.8) { player.food += 4; player.potions += 1; loot = "+4🍖 +1🧪"; }
+            else { player.arrows += 10; player.torches += 3; loot = "+10🏹 +3🔥"; }
+            SFX.chest();
+            addParticle(tx*TS+TS/2, ty*TS+TS/2, loot, "#ffd700");
+            showNotification("📦 " + loot);
+            updateUI(); checkAchievements();
+            return;
+        }
+        const dmgBonus = getDamageBonus();
+        if (tile.type === "tree") {
+            const dmg = (player.hasAxe ? 3 : dmgBonus);
+            tile.durability -= dmg; SFX.hit();
+            addAttackEffect(tx*TS+TS/2, ty*TS+TS/2, "#aa7744");
+            if (tile.durability <= 0) {
+                const drop = tile.treeType ? tile.treeType.woodDrop : 3;
+                world[tx][ty] = { type: "grass", durability: 1, treeType: null, looted: false };
+                player.wood += drop; addExp(tile.treeType ? tile.treeType.exp : 2);
+                addParticle(tx*TS+TS/2, ty*TS+TS/2, `+${drop}🪵`);
+            } else { player.wood += 1; addExp(1); addParticle(tx*TS+TS/2, ty*TS+TS/2, "+1🪵"); }
+            checkAchievements();
+        } else if (tile.type === "stone") {
+            const dmg = (player.hasPick ? 3 : dmgBonus);
+            tile.durability -= dmg; SFX.hit();
+            addAttackEffect(tx*TS+TS/2, ty*TS+TS/2, "#aaaaaa");
+            if (tile.durability <= 0) {
+                world[tx][ty] = { type: "grass", durability: 1, treeType: null, looted: false };
+                player.stone += 3; addExp(2);
+                addParticle(tx*TS+TS/2, ty*TS+TS/2, "+3🪨");
+            } else { player.stone += 1; addExp(1); addParticle(tx*TS+TS/2, ty*TS+TS/2, "+1🪨"); }
+            checkAchievements();
+        } else if (tile.type === "food") {
+            world[tx][ty] = { type: "grass", durability: 1, treeType: null, looted: false };
+            player.food += 2; SFX.hit();
+            addParticle(tx*TS+TS/2, ty*TS+TS/2, "+2🍖");
+            addExp(1); checkAchievements();
+        }
+        updateUI();
+    }
+    function destroyTile(tx, ty) {
+        if (tx < 0 || ty < 0 || tx >= SIZE || ty >= SIZE) return;
+        if (Math.abs(tx - player.x) + Math.abs(ty - player.y) > 1) return;
+        const tile = world[tx][ty];
+        if (tile.type === "chest" || tile.type === "water") return;
+        if (tile.type === "tree") player.wood += 1;
+        else if (tile.type === "stone") player.stone += 1;
+        else if (tile.type === "food") player.food += 1;
+        else return;
+        world[tx][ty] = { type: "grass", durability: 1, treeType: null, looted: false };
+        SFX.hit(); updateUI(); checkAchievements();
+    }
+
+    function attackNearby() {
+        if (player.attackCooldown > 0 || isPaused || isDead) return;
+        player.attackCooldown = 6;
+        SFX.attack();
+        addAttackEffect(player.x*TS+TS/2, player.y*TS+TS/2, "#ffff88");
+        if (boss && Math.abs(boss.x - player.x) + Math.abs(boss.y - player.y) <= 1) {
+            const dmg = getDamageBonus();
+            boss.hp -= dmg; player.attackCooldown = 8;
+            SFX.hit();
+            addParticle(boss.x*TS+TS/2, boss.y*TS+TS/2, `-${dmg}`, "#ffaa33");
+            addAttackEffect(boss.x*TS+TS/2, boss.y*TS+TS/2, "#ffaa33");
+            if (boss.hp <= 0) {
+                addExp(boss.exp);
+                if (boss.type === 'shadow') { player.shadowLordKilled = true; player.potions += 2; player.torches += 5; showNotification("👑 Лорд Теней побеждён! +2🧪 +5🔥"); }
+                else if (boss.type === 'skeleton') { player.skeletonKingKilled = true; player.potions += 5; player.arrows += 20; showNotification("👑 Король Скелетов пал! +5🧪 +20🏹"); }
+                SFX.level(); boss = null; currentBossType = null;
+                checkAchievements();
+            }
+            updateBossHpBar();
+            return;
+        }
+        const dmg = getDamageBonus();
+        for (const m of mobs) {
+            if (Math.abs(m.x - player.x) + Math.abs(m.y - player.y) <= 1) {
+                m.hp -= dmg; SFX.hit();
+                addParticle(m.x*TS+TS/2, m.y*TS+TS/2, `-${dmg}`, "#ffaa33");
+                addAttackEffect(m.x*TS+TS/2, m.y*TS+TS/2, "#ffaa33");
+                if (m.hp <= 0) {
+                    addExp(m.type.exp); player.food += 1; killCount++;
+                    addParticle(m.x*TS+TS/2, m.y*TS+TS/2, `+${m.type.exp}⭐`, "#ffff55");
+                    checkAchievements(); updateStatsIndicator();
+                }
+            }
+        }
+        mobs = mobs.filter(m => m.hp > 0);
+    }
+
+    function eatFood() {
+        if (player.food >= 1 && player.hunger < player.maxHunger) {
+            player.food -= 1; player.hunger = Math.min(player.maxHunger, player.hunger + 6);
+            addParticle(player.x*TS+TS/2, player.y*TS+TS/2, "+6🍗", "#55ff55");
+            SFX.eat(); updateUI();
+        }
+    }
+    function eatFish() {
+        if (player.fish >= 1 && player.hunger < player.maxHunger) {
+            player.fish -= 1; player.hunger = Math.min(player.maxHunger, player.hunger + 7);
+            addParticle(player.x*TS+TS/2, player.y*TS+TS/2, "+7🐟", "#55aaff");
+            SFX.eat(); updateUI();
+        }
+    }
+    function usePotion() {
+        if (player.potions >= 1 && player.hp < player.maxHp) {
+            player.potions -= 1; player.hp = Math.min(player.maxHp, player.hp + 10);
+            addParticle(player.x*TS+TS/2, player.y*TS+TS/2, "+10❤️", "#ff66aa");
+            SFX.craft(); showNotification("🧪 Вы выпили зелье!"); updateUI();
+        }
+    }
+    function placeTorch() {
+        if (player.torches < 1) return;
+        if (world[player.x][player.y].type !== "grass") return;
+        if (isTorchAt(player.x, player.y)) return;
+        torches.push({ x: player.x, y: player.y });
+        player.torches -= 1; SFX.place();
+        addParticle(player.x*TS+TS/2, player.y*TS+TS/2, "🔥 Факел!", "#ffaa33");
+        showNotification("🔥 Факел установлен"); updateUI();
+    }
+    function useBoat() {
+        if (!player.hasBoat) return;
+        const tile = world[player.x][player.y];
+        if (tile.type !== "water") { showNotification("🛶 Лодку можно использовать только на воде!"); return; }
+        inBoat = !inBoat;
+        showNotification(inBoat ? "🛶 Вы сели в лодку" : "🛶 Вы вышли из лодки"); updateUI();
+    }
+
+    document.getElementById('craftAxe').onclick = () => { if (player.wood >= 5 && !player.hasAxe) { player.wood -= 5; player.hasAxe = true; SFX.craft(); showNotification("🪓 Топор готов!"); updateUI(); } };
+    document.getElementById('craftPick').onclick = () => { if (player.stone >= 5 && !player.hasPick) { player.stone -= 5; player.hasPick = true; SFX.craft(); showNotification("⛏️ Кирка готова!"); updateUI(); } };
+    document.getElementById('craftSword').onclick = () => { if (player.wood >= 3 && player.stone >= 2 && !player.hasSword) { player.wood -= 3; player.stone -= 2; player.hasSword = true; SFX.craft(); showNotification("⚔️ Меч готов!"); updateUI(); } };
+    document.getElementById('craftBow').onclick = () => { if (player.wood >= 3 && player.stone >= 2 && !player.hasBow) { player.wood -= 3; player.stone -= 2; player.hasBow = true; SFX.craft(); showNotification("🏹 Лук готов!"); updateUI(); } };
+    document.getElementById('craftArrow').onclick = () => { if (player.wood >= 1 && player.stone >= 1) { player.wood -= 1; player.stone -= 1; player.arrows += 5; SFX.craft(); updateUI(); } };
+    document.getElementById('craftFishingRod').onclick = () => { if (player.wood >= 3 && player.stone >= 1 && !player.hasFishingRod) { player.wood -= 3; player.stone -= 1; player.hasFishingRod = true; SFX.craft(); showNotification("🎣 Удочка готова!"); updateUI(); } };
+    document.getElementById('craftBoat').onclick = () => { if (player.wood >= 5 && !player.hasBoat) { player.wood -= 5; player.hasBoat = true; SFX.craft(); showNotification("🛶 Лодка готова!"); updateUI(); } };
+    document.getElementById('craftPotion').onclick = () => { if (player.food >= 3 && player.stone >= 1) { player.food -= 3; player.stone -= 1; player.potions += 1; SFX.craft(); updateUI(); } };
+    document.getElementById('craftLeatherArmor').onclick = () => { if (player.food >= 5 && !player.hasLeatherArmor) { player.food -= 5; player.hasLeatherArmor = true; SFX.craft(); showNotification("🛡️ Кожаная броня! -30% урона"); updateUI(); checkAchievements(); updateArmorIndicator(); } };
+    document.getElementById('craftStoneArmor').onclick = () => { if (player.stone >= 10 && !player.hasStoneArmor) { player.stone -= 10; player.hasStoneArmor = true; SFX.craft(); showNotification("🪨 Каменная броня! -60% урона"); updateUI(); checkAchievements(); updateArmorIndicator(); } };
+    document.getElementById('craftSharpening').onclick = () => sharpenWeapon();
+    document.getElementById('craftBed').onclick = () => { if (player.wood >= 10 && !player.hasBed) { player.wood -= 10; player.hasBed = true; player.spawnX = player.x; player.spawnY = player.y; SFX.craft(); showNotification("🛏️ Точка возрождения!"); updateUI(); } };
+    document.getElementById('craftTorch').onclick = () => { if (player.wood >= 1 && player.stone >= 1) { player.wood -= 1; player.stone -= 1; player.torches += 1; SFX.craft(); updateUI(); } };
+    document.getElementById('craftFood').onclick = () => { if (player.wood >= 3) { player.wood -= 3; player.food += 2; SFX.craft(); updateUI(); checkAchievements(); } };
+    document.getElementById('eatFood').onclick = eatFood;
+    document.getElementById('eatFish').onclick = eatFish;
+    document.getElementById('usePotion').onclick = usePotion;
+    document.getElementById('placeTorch').onclick = placeTorch;
+
+    function drawMinimap() {
+        minimapCtx.fillStyle = "#000000";
+        minimapCtx.fillRect(0, 0, 100, 100);
+        const cell = 100 / SIZE;
+        for (let i = 0; i < SIZE; i++) {
+            for (let j = 0; j < SIZE; j++) {
+                const bio = BIOMES[biomeMap[i][j]];
+                minimapCtx.fillStyle = bio.bg;
+                minimapCtx.fillRect(i * cell, j * cell, cell, cell);
+                if (world[i][j] && world[i][j].type === "water") { minimapCtx.fillStyle = "#2a6a8a"; minimapCtx.fillRect(i * cell, j * cell, cell, cell); }
+                if (isTorchAt(i, j)) { minimapCtx.fillStyle = "#ffaa33"; minimapCtx.fillRect(i * cell + 2, j * cell + 2, cell - 4, cell - 4); }
+                if (world[i][j] && world[i][j].type === "chest" && !world[i][j].looted) { minimapCtx.fillStyle = "#d4af37"; minimapCtx.fillRect(i * cell + cell/3, j * cell + cell/3, cell/3, cell/3); }
+            }
+        }
+        if (boss) { minimapCtx.fillStyle = "#ff0000"; minimapCtx.fillRect(boss.x * cell + 1, boss.y * cell + 1, cell - 2, cell - 2); }
+        minimapCtx.fillStyle = "#ff3333";
+        mobs.forEach(m => { minimapCtx.fillRect(m.x * cell + 2, m.y * cell + 2, cell - 4, cell - 4); });
+        minimapCtx.fillStyle = "#ffffff";
+        minimapCtx.beginPath(); minimapCtx.arc(player.x * cell + cell/2, player.y * cell + cell/2, 3, 0, Math.PI*2); minimapCtx.fill();
+        if (player.hasBed) { minimapCtx.fillStyle = "#ff88aa"; minimapCtx.fillRect(player.spawnX * cell + 1, player.spawnY * cell + 1, cell - 2, cell - 2); }
+    }
+
+    function getLightAt(x, y) {
+        const isNight = gameTime > 0.66;
+        let light = isNight ? 0.35 : 1.0;
+        for (const t of torches) {
+            const d = Math.abs(t.x - x) + Math.abs(t.y - y);
+            if (d < 4) light = Math.max(light, 1.0 - d * 0.2);
+        }
+        if (isNight) {
+            const pd = Math.abs(player.x - x) + Math.abs(player.y - y);
+            if (pd < 2) light = Math.max(light, 0.75);
+        }
+        return Math.min(1.0, light);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const isNight = gameTime > 0.66;
+        for (let i = 0; i < SIZE; i++) {
+            for (let j = 0; j < SIZE; j++) {
+                const bio = BIOMES[biomeMap[i][j]];
+                const tile = world[i][j];
+                const x = i * TS, y = j * TS;
+                const light = getLightAt(i, j);
+                const isCave = caveMap[i] && caveMap[i][j];
+                if (tile.type === "water") {
+                    ctx.fillStyle = "#2a6a8a";
+                    ctx.fillRect(x, y, TS - 1, TS - 1);
+                    ctx.fillStyle = "#4a9aba";
+                    const waveOffset = Math.sin(Date.now() / 500 + i + j) * 2;
+                    for (let w = 0; w < 3; w++) ctx.fillRect(x + 5 + w * 10, y + 20 + waveOffset, 6, 2);
+                } else {
+                    ctx.fillStyle = bio.bg;
+                    ctx.fillRect(x, y, TS - 1, TS - 1);
+                    if (tile.type === "tree") {
+                        const treeColor = tile.treeType ? tile.treeType.color : "#2c6e2c";
+                        ctx.fillStyle = tile.treeType ? tile.treeType.trunkColor : "#4a2e1a";
+                        ctx.fillRect(x + 16, y + 18, 6, 18);
+                        ctx.fillStyle = treeColor;
+                        ctx.beginPath(); ctx.arc(x + TS/2, y + 16, 12, 0, Math.PI * 2); ctx.fill();
+                    } else if (tile.type === "stone") {
+                        ctx.fillStyle = "#5a5a5a";
+                        ctx.fillRect(x + 6, y + 10, TS - 12, TS - 16);
+                        ctx.fillStyle = "#8a8a8a";
+                        ctx.fillRect(x + 10, y + 14, 8, 6);
+                    } else if (tile.type === "food") {
+                        ctx.fillStyle = "#3a6a2a";
+                        ctx.beginPath(); ctx.arc(x + TS/2, y + TS/2, 10, 0, Math.PI * 2); ctx.fill();
+                        ctx.fillStyle = "#c0392b";
+                        ctx.beginPath(); ctx.arc(x + 24, y + 22, 4, 0, Math.PI * 2); ctx.fill();
+                    } else if (tile.type === "chest") {
+                        ctx.fillStyle = tile.looted ? "#555555" : "#b8860b";
+                        ctx.fillRect(x + 12, y + 20, TS - 24, 16);
+                        ctx.fillStyle = tile.looted ? "#777777" : "#d4af37";
+                        ctx.fillRect(x + 16, y + 16, TS - 32, 8);
+                    } else {
+                        ctx.fillStyle = bio.grass;
+                        ctx.fillRect(x + 4, y + TS - 10, TS - 8, 6);
+                    }
+                }
+                if (isCave && tile.type !== "water") { ctx.fillStyle = "rgba(0,0,0,0.4)"; ctx.fillRect(x, y, TS - 1, TS - 1); }
+                if (light < 1.0) { ctx.fillStyle = `rgba(5, 5, 25, ${1 - light})`; ctx.fillRect(x, y, TS - 1, TS - 1); }
+                ctx.strokeStyle = "#00000022";
+                ctx.strokeRect(x, y, TS - 1, TS - 1);
+            }
+        }
+        torches.forEach(t => {
+            const x = t.x * TS, y = t.y * TS;
+            ctx.fillStyle = "#4a2e1a";
+            ctx.fillRect(x + TS/2 - 2, y + 20, 4, 20);
+            const flicker = Math.sin(Date.now() / 100 + t.x * 7) * 2;
+            ctx.fillStyle = "#ffaa33";
+            ctx.beginPath(); ctx.arc(x + TS/2, y + 16 + flicker, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#ffff66";
+            ctx.beginPath(); ctx.arc(x + TS/2, y + 16 + flicker, 3, 0, Math.PI * 2); ctx.fill();
+        });
+
+        ambientParticles.forEach(p => {
+            const alpha = Math.min(1, p.life / p.maxLife);
+            ctx.globalAlpha = alpha;
+            if (p.type === 'firefly') {
+                const glow = 0.5 + Math.sin(Date.now() / 200 + p.x) * 0.5;
+                ctx.fillStyle = p.color;
+                ctx.shadowBlur = 8; ctx.shadowColor = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size * glow, 0, Math.PI * 2); ctx.fill();
+                ctx.shadowBlur = 0;
+            } else if (p.type === 'snow') {
+                ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+            } else if (p.type === 'leaf') {
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rot);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-3, -1, 6, 2);
+                ctx.restore();
+            } else if (p.type === 'sand') {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+            }
+            ctx.globalAlpha = 1.0;
+        });
+
+        if (boss) {
+            const x = boss.x * TS, y = boss.y * TS;
+            const bossData = BOSSES[boss.type];
+            const pulse = 0.5 + Math.sin(Date.now() / 300) * 0.3;
+            const grad = ctx.createRadialGradient(x + TS/2, y + TS/2, 0, x + TS/2, y + TS/2, TS);
+            grad.addColorStop(0, bossData.aura + Math.floor(pulse * 100).toString(16).padStart(2, '0'));
+            grad.addColorStop(1, bossData.aura + "00");
+            ctx.fillStyle = grad;
+            ctx.fillRect(x - TS/2, y - TS/2, TS*2, TS*2);
+            ctx.fillStyle = bossData.color;
+            ctx.fillRect(x + 6, y + 6, TS - 12, TS - 12);
+            ctx.fillStyle = "#ff0000";
+            ctx.fillRect(x + 12, y + 14, 6, 6);
+            ctx.fillRect(x + 20, y + 14, 6, 6);
+            ctx.fillStyle = "#ff6600";
+            ctx.fillRect(x + 16, y + 24, 8, 8);
+            ctx.font = "bold 14px monospace";
+            ctx.fillStyle = "white";
+            ctx.fillText(boss.type === 'shadow' ? "👹" : "💀", x + 12, y + 32);
+        }
+        mobs.forEach(m => {
+            const x = m.x * TS, y = m.y * TS;
+            ctx.fillStyle = m.type.color;
+            ctx.fillRect(x + 10, y + 8, TS - 20, TS - 16);
+            ctx.fillStyle = "#ff0000";
+            ctx.fillRect(x + 16, y + 14, 4, 4);
+            ctx.fillRect(x + 28, y + 14, 4, 4);
+            const hpPercent = m.hp / m.maxHp;
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(x + 8, y + 2, TS - 16, 4);
+            ctx.fillStyle = hpPercent > 0.5 ? "#55ff55" : "#ffaa33";
+            ctx.fillRect(x + 8, y + 2, (TS - 16) * hpPercent, 4);
+            ctx.font = "bold 12px monospace";
+            ctx.fillStyle = "white";
+            ctx.fillText(m.type.name, x + 16, y + 36);
+        });
+        projectiles.forEach(p => {
+            const px = p.x * TS, py = p.y * TS;
+            ctx.fillStyle = "#ffaa33";
+            ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#ffff66";
+            ctx.beginPath(); ctx.arc(px, py, 2, 0, Math.PI * 2); ctx.fill();
+        });
+
+        attackEffects.forEach(e => {
+            const alpha = e.life / 15;
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = e.color;
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2); ctx.stroke();
+            ctx.globalAlpha = 1.0;
+            ctx.lineWidth = 1;
+        });
+
+        const px = player.x * TS, py = player.y * TS;
+        if (player.invincibleFrames > 0 && Math.floor(Date.now() / 60) % 2 === 0) ctx.globalAlpha = 0.5;
+        if (inBoat) {
+            ctx.fillStyle = "#8b4513";
+            ctx.fillRect(px + 6, py + 28, TS - 12, 10);
+            ctx.fillStyle = "#a0522d";
+            ctx.fillRect(px + 8, py + 30, TS - 16, 6);
+        }
+        ctx.fillStyle = "#ffcc77";
+        ctx.beginPath(); ctx.arc(px + TS/2, py + TS/2, TS * 0.35, 0, Math.PI * 2); ctx.fill();
+        if (player.hasStoneArmor) {
+            ctx.strokeStyle = "#888888"; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(px + TS/2, py + TS/2, TS * 0.38, 0, Math.PI * 2); ctx.stroke();
+        } else if (player.hasLeatherArmor) {
+            ctx.strokeStyle = "#8b4513"; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(px + TS/2, py + TS/2, TS * 0.37, 0, Math.PI * 2); ctx.stroke();
+        }
+        if (player.sharpened) { ctx.shadowBlur = 8; ctx.shadowColor = "#ffaa33"; }
+        ctx.fillStyle = "white";
+        ctx.fillRect(px + TS * 0.35, py + TS * 0.4, 5, 5);
+        ctx.fillRect(px + TS * 0.55, py + TS * 0.4, 5, 5);
+        ctx.fillStyle = "#000";
+        ctx.fillRect(px + TS * 0.37, py + TS * 0.42, 2, 2);
+        ctx.fillRect(px + TS * 0.57, py + TS * 0.42, 2, 2);
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1.0;
+        if (player.hasBow) {
+            ctx.fillStyle = "#8b4513";
+            ctx.fillRect(px + TS - 4, py + 12, 2, 16);
+            ctx.strokeStyle = "#cccccc"; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(px + TS - 3, py + 12); ctx.lineTo(px + TS - 3, py + 28); ctx.stroke();
+        } else if (player.hasSword) {
+            ctx.fillStyle = "#cccccc";
+            ctx.fillRect(px + TS - 6, py + 14, 3, 18);
+            ctx.fillStyle = "#8b4513";
+            ctx.fillRect(px + TS - 8, py + 30, 7, 4);
+        } else if (player.hasAxe) {
+            ctx.fillStyle = "#8b4513";
+            ctx.fillRect(px + TS - 6, py + 20, 3, 14);
+            ctx.fillStyle = "#aaaaaa";
+            ctx.fillRect(px + TS - 10, py + 16, 8, 6);
+        }
+        if (fishingRodActive) {
+            const bobOffset = Math.sin(Date.now() / 200) * 3;
+            ctx.fillStyle = "#ff0000";
+            ctx.beginPath(); ctx.arc(px + TS/2, py + TS/2 + bobOffset, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(px + TS/2 - 1, py + TS/2 - 8 + bobOffset, 2, 8);
+        }
+        particles.forEach(p => {
+            ctx.globalAlpha = p.life / 40;
+            ctx.fillStyle = p.color;
+            ctx.font = "bold 11px monospace";
+            ctx.fillText(p.text, p.x - ctx.measureText(p.text).width / 2, p.y);
+        });
+        ctx.globalAlpha = 1.0;
+        if (player.hasBow && player.arrows > 0 && !isPaused && !isDead) {
+            ctx.strokeStyle = "#ff5555"; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(mousePos.x, mousePos.y, 8, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(mousePos.x - 12, mousePos.y); ctx.lineTo(mousePos.x + 12, mousePos.y);
+            ctx.moveTo(mousePos.x, mousePos.y - 12); ctx.lineTo(mousePos.x, mousePos.y + 12);
+            ctx.stroke();
+            ctx.lineWidth = 1;
+        }
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(8, 8, 140, 24);
+        ctx.fillStyle = isNight ? "#aaaaff" : (weather === 1 ? "#aaddff" : "#ffdd55");
+        ctx.font = "bold 12px monospace";
+        ctx.fillText(isNight ? "🌙 Ночь" : (weather === 1 ? "🌧️ Дождь" : "☀️ День"), 16, 25);
+        ctx.fillStyle = "#333";
+        ctx.fillRect(8, 36, 140, 4);
+        ctx.fillStyle = isNight ? "#5555aa" : "#ffaa33";
+        ctx.fillRect(8, 36, 140 * gameTime, 4);
+        if (weather === 1 && !isNight) {
+            ctx.fillStyle = "rgba(170, 221, 255, 0.5)";
+            raindrops.forEach(drop => {
+                ctx.fillRect(drop.x, drop.y, 2, 6);
+                drop.y += drop.speed;
+                if (drop.y > canvas.height) { drop.y = -10; drop.x = Math.random() * canvas.width; }
+            });
+        }
+        if (damageFlash > 0) {
+            ctx.fillStyle = `rgba(255, 50, 50, ${damageFlash / 30})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    let lastTickTime = 0;
+    function gameLoop(timestamp) {
+        if (!lastTickTime) lastTickTime = timestamp;
+        if (!isPaused && !isDead && timestamp - lastTickTime >= 500) {
+            tick();
+            lastTickTime = timestamp;
+        }
+        draw();
+        drawMinimap();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function handleAnyInteraction() { initAudio(); }
+    
+    function getCanvasCoords(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let clientX, clientY;
+        
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+        
+        const canvasX = (clientX - rect.left) * scaleX;
+        const canvasY = (clientY - rect.top) * scaleY;
+        
+        return {
+            x: Math.max(0, Math.min(canvas.width, canvasX)),
+            y: Math.max(0, Math.min(canvas.height, canvasY)),
+            tileX: Math.floor(canvasX / TS),
+            tileY: Math.floor(canvasY / TS)
+        };
+    }
+    
+    window.addEventListener('keydown', (e) => {
+        handleAnyInteraction();
+        if (document.getElementById('menuOverlay').classList.contains('show')) return;
+        if (document.getElementById('deathOverlay').classList.contains('show')) return;
+        if (e.key === 'Escape') { isPaused = !isPaused; document.getElementById('pauseOverlay').classList.toggle('show', isPaused); return; }
+        if (isPaused) return;
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === 'ц' || e.key === 'Ц') movePlayer(0, -1);
+        else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S' || e.key === 'ы' || e.key === 'Ы') movePlayer(0, 1);
+        else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A' || e.key === 'ф' || e.key === 'Ф') movePlayer(-1, 0);
+        else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D' || e.key === 'в' || e.key === 'В') movePlayer(1, 0);
+        else if (e.key === ' ') { attackNearby(); e.preventDefault(); }
+        else if (e.key === 'e' || e.key === 'E' || e.key === 'у' || e.key === 'У') eatFood();
+        else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') placeTorch();
+        else if (e.key === 'r' || e.key === 'R' || e.key === 'к' || e.key === 'К') {
+            if (player.hasBow && player.arrows > 0) {
+                if (mousePos.x === 0 && mousePos.y === 0) {
+                    shootInLastDirection();
+                } else {
+                    const rect = canvas.getBoundingClientRect();
+                    const sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+                    shootArrow((mousePos.x / sx) / TS, (mousePos.y / sy) / TS);
+                }
+            }
+        }
+        else if (e.key === 'x' || e.key === 'X' || e.key === 'ч' || e.key === 'Ч') startFishing();
+        else if (e.key === 'b' || e.key === 'B' || e.key === 'и' || e.key === 'И') useBoat();
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+        const { x, y } = getCanvasCoords(e);
+        mousePos.x = x;
+        mousePos.y = y;
+    });
+    
+    canvas.addEventListener('click', (e) => {
+        handleAnyInteraction();
+        if (isPaused || isDead) return;
+        const { tileX, tileY } = getCanvasCoords(e);
+        if (tileX >= 0 && tileX < SIZE && tileY >= 0 && tileY < SIZE) {
+            // УМНЫЙ КЛИК: если на тайле есть моб — атакуем
+            const mobOnTile = mobs.find(m => m.x === tileX && m.y === tileY);
+            const bossOnTile = boss && boss.x === tileX && boss.y === tileY;
+            if (mobOnTile || bossOnTile) {
+                attackNearby();
+            } else if (e.shiftKey) {
+                destroyTile(tileX, tileY);
+            } else {
+                harvestTile(tileX, tileY);
+            }
+        }
+    });
+    
+    canvas.addEventListener('contextmenu', (e) => { 
+        e.preventDefault(); 
+        if (isPaused || isDead) return; 
+        const { tileX, tileY } = getCanvasCoords(e);
+        if (tileX >= 0 && tileX < SIZE && tileY >= 0 && tileY < SIZE) {
+            destroyTile(tileX, tileY);
+        }
+    });
+    
+    // ===== TOUCH: УМНЫЙ ТАП (моб по тайлу = атака, ресурс = добыча) =====
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleAnyInteraction();
+        if (isPaused || isDead) return;
+        const { tileX, tileY } = getCanvasCoords(e);
+        if (tileX >= 0 && tileX < SIZE && tileY >= 0 && tileY < SIZE) {
+            const mobOnTile = mobs.find(m => m.x === tileX && m.y === tileY);
+            const bossOnTile = boss && boss.x === tileX && boss.y === tileY;
+            if (mobOnTile || bossOnTile) {
+                attackNearby();
+            } else {
+                harvestTile(tileX, tileY);
+            }
+        }
+    }, { passive: false });
+    
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const { x, y } = getCanvasCoords(e);
+        mousePos.x = x;
+        mousePos.y = y;
+    }, { passive: false });
+    
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+    }, { passive: false });
+
+    // ===== МОБИЛЬНЫЕ КНОПКИ =====
+    document.getElementById('mUp').addEventListener('click', () => { handleAnyInteraction(); movePlayer(0, -1); });
+    document.getElementById('mDown').addEventListener('click', () => { handleAnyInteraction(); movePlayer(0, 1); });
+    document.getElementById('mLeft').addEventListener('click', () => { handleAnyInteraction(); movePlayer(-1, 0); });
+    document.getElementById('mRight').addEventListener('click', () => { handleAnyInteraction(); movePlayer(1, 0); });
+    document.getElementById('mAttack').addEventListener('click', () => { handleAnyInteraction(); attackNearby(); });
+    document.getElementById('mShoot').addEventListener('click', () => { handleAnyInteraction(); shootInLastDirection(); });
+    document.getElementById('mTorch').addEventListener('click', () => { handleAnyInteraction(); placeTorch(); });
+    document.getElementById('mFish').addEventListener('click', () => { handleAnyInteraction(); startFishing(); });
+    document.getElementById('mBoat').addEventListener('click', () => { handleAnyInteraction(); useBoat(); });
+
+    document.getElementById('resetBtn').onclick = () => { if (confirm("Начать новую игру?")) { localStorage.removeItem('cubecraft_pro_save'); newGame(); } };
+    document.getElementById('respawnBtn').onclick = () => { 
+        document.getElementById('deathOverlay').classList.remove('show'); 
+        player.x = player.spawnX; player.y = player.spawnY; 
+        player.hp = player.maxHp; player.hunger = player.maxHunger; 
+        player.invincibleFrames = 30; mobs = []; isDead = false; damageFlash = 0;
+        updateUI(); draw(); drawMinimap(); 
+        showNotification("⚡ Возрождение" + (player.hasBed ? " у кровати" : "")); 
+    };
+    document.getElementById('newGameFromDeathBtn').onclick = () => { document.getElementById('deathOverlay').classList.remove('show'); newGame(); };
+    document.getElementById('resumeBtn').onclick = () => { isPaused = false; document.getElementById('pauseOverlay').classList.remove('show'); };
+    document.getElementById('saveMenuBtn').onclick = () => { if (saveGame()) { showNotification("💾 Сохранено!"); document.getElementById('pauseOverlay').classList.remove('show'); showMenu(); } };
+    document.getElementById('newGameBtn').onclick = () => { handleAnyInteraction(); newGame(); };
+    document.getElementById('continueBtn').onclick = () => { handleAnyInteraction(); continueGame(); };
+    document.getElementById('soundToggle').onclick = () => { handleAnyInteraction(); soundEnabled = !soundEnabled; document.getElementById('soundToggle').innerText = soundEnabled ? "🔊" : "🔇"; };
+    
+    const hasSave = localStorage.getItem('cubecraft_pro_save') !== null;
+    document.getElementById('continueBtn').style.display = hasSave ? 'block' : 'none';
+    document.getElementById('menuOverlay').classList.add('show');
+    isPaused = true;
+    initAchievements();
+    requestAnimationFrame(gameLoop);
+})();
+</script>
+</body>
+</html>
