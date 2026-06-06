@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://cubecraft-pro-antiai.vercel.app/sitemap.xml
